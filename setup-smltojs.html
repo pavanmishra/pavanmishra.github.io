@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>index</title>
+<title>setup-smltojs</title>
 <!-- 2019-02-28 Thu 10:02 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
@@ -137,36 +137,157 @@ for the JavaScript code in this tag.
 </head>
 <body>
 <div id="content">
-<h1 class="title">index</h1>
+<h1 class="title">setup-smltojs</h1>
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#sec-1">1. Pavan Mishra</a>
-<ul>
-<li><a href="#sec-1-1">1.1. About Me</a></li>
-</ul>
-</li>
+<li><a href="#sec-1">1. Error: Failed to find info for file: ../../js/basis/basis.mlb</a></li>
 </ul>
 </div>
 </div>
+<p>
+I need autoconf and MLton.
+MLKit is not necessary (unconfirmed).
+</p>
+
+<p>
+autoconf has no dependent package.
+MLton gmp will be installed together.
+</p>
+
+<p>
+$ brew install autoconf
+$ brew install mlton
+It takes some time for make.
+</p>
+
+<p>
+$ mkdir ~ / Programming / SMLtoJs; cd $ _
+$ git clone <a href="https://github.com/melsman/mlkit.git">https://github.com/melsman/mlkit.git</a> smltojs
+$ cd smltojs
+$ ./autobuild
+$ ./configure
+$ make smltojs
+$ make smltojs<sub>basislibs</sub>
+$ ./bin/smltojs &#x2013;help
+The readability of the generated JavaScript file is low feeling.
+JavaScript is only the target language, it seems that operation at JavaScript level is not supposed. (Unlike PureScript and BuckleScript)
+</p>
+
+<p>
+Compile SMLtoJs itself into JavaScript
+</p>
+
+<p>
+I want to run SMLtoJs in Node.js.
+</p>
+
+<p>
+<a href="https://github.com/melsman/mlkit/blob/master/README_SMLTOJS.md">https://github.com/melsman/mlkit/blob/master/README_SMLTOJS.md</a>
+To build the browser-hosted compiler, proceed as follows:
+</p>
+
+<p>
+$ cd ../../src/Compiler
+$ SML<sub>LIB</sub> = $ (HOME) / smltojs / js ../../bin/smltojs - aopt smltojs0.mlb
+The last command should generate a file run.html which links to all necessary JavaScript sources. Executing
+</p>
+
+<p>
+$ firefox run.html
+will start up a simple IDE for the compiler.
+$ cd ../../src/Compiler
+$ SML<sub>LIB</sub> = .. / .. / js ../../bin/smltojs - aopt smltojs0.mlb
+An error occurs
+</p>
+
 <div id="outline-container-sec-1" class="outline-2">
-<h2 id="sec-1"><span class="section-number-2">1</span> Pavan Mishra</h2>
+<h2 id="sec-1"><span class="section-number-2">1</span> Error: Failed to find info for file: ../../js/basis/basis.mlb</h2>
 <div class="outline-text-2" id="text-1">
-</div><div id="outline-container-sec-1-1" class="outline-3">
-<h3 id="sec-1-1"><span class="section-number-3">1.1</span> About Me</h3>
-<div class="outline-text-3" id="text-1-1">
+<p>
+Details: No such file or directory
+The error message seems to be output in src / Tools / MlbMake / MlbFileSys.sml.
+ST is defined in ./basis/POSIX<sub>FILE</sub><sub>SYS</sub>.sml.
+</p>
+
+<p>
+If it changed to absolute path it was ok.
+</p>
+
+<p>
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build; cd $ _
+$ SML<sub>LIB</sub> = $ {PWD} <i>..</i> js $ {PWD} <i>..</i> bin / smltojs - aopt $ {PWD} <i>..</i> src / Compiler / smltojs0.mlb
+However, another error occurred.
+</p>
+
+<p>
+&#x2026; / Programming / SMLtoJs / smltojs / Build / .. / js / appfun / AppFun2.sml, line 884, column 6:
+    val () = attachToElement (getElem "body") everything
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Type clash,
+   type of left-hand side pattern: unit
+   type of right-hand side expression: (unit-&gt; unit) -&gt; unit
+<i>ERR in sub process:
+  PARSE_ELAB_ERROR</i>
+Stopping compilation of MLB-file due to error (code 1).
+Since AppFun 2 seems unnecessary, it seems no problem to delete it.
+</p>
+
+<p>
+Since attachToElement is a three-argument function, only two arguments are passed, so the partially applied function becomes an expression that returns.
+It seems better to add arguments.
+</p>
+
+<p>
+Fixed AppFun2.sml for the time being.
+</p>
+
 <ul class="org-ul">
-<li>Uses Emacs
+<li>val () = attachToElement (getElem "body") everything
 </li>
-<li>Uses Dvorak keyboard layout
-</li>
-<li>Uses recursion
-</li>
-<li>Solves problem by modeling first
+<li>val () = attachToElement (getElem "body") everything (fn () =&gt; ())
 </li>
 </ul>
-</div>
+<p>
+Once compiled successfully.
+</p>
+
+<p>
+It seems that adding a js<sub>path</sub><sub>compress</sub> option will normalize the path.
+</p>
+
+<p>
+$ export JS<sub>PATH</sub><sub>FLAGS</sub> = "- js<sub>path</sub><sub>compress</sub>"
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build; cd $ _
+$ SML<sub>LIB</sub> = $ {PWD} <i>..</i> js $ {PWD} <i>..</i> bin / smltojs - aopt $ {JS<sub>PATH</sub><sub>FLAGS</sub>} $ {PWD} <i>..</i> src / Compiler / smltojs0.mlb
+List of generated JavaScript files:
+</p>
+
+<p>
+$ cat run.html | sed 's / &lt;script type = \ "text \ / javascript \" src = \ "<i>/' | sed 's / \"&gt; &lt;\ / script&gt; /</i>' | grep - v ' &lt;! - '&gt; files.txt
+Copy file
+</p>
+
+<p>
+$ cat files.txt | while read i; do cat $ {i} &gt;&gt; smltojs.js; done
+Because it contained DOM libraries, it was not possible to run in Node.js (maybe you should use jsdom).
+</p>
+
+<p>
+$ node smltojs.js
+Build smltojs.mlb.
+</p>
+
+<p>
+$ export JS<sub>PATH</sub><sub>FLAGS</sub> = "- js<sub>path</sub><sub>compress</sub>"
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build 1; cd $ _
+$ SML<sub>LIB</sub> = $ {PWD} <i>..</i> js $ {PWD} <i>..</i> bin / smltojs - aopt $ {JS<sub>PATH</sub><sub>FLAGS</sub>} $ {PWD} <i>..</i> src / Compiler / smltojs.mlb
+This failed to build due to an error.
+</p>
 </div>
 </div>
 </div>

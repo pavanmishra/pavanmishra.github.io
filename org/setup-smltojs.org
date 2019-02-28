@@ -1,0 +1,92 @@
+I need autoconf and MLton.
+MLKit is not necessary (unconfirmed).
+
+autoconf has no dependent package.
+MLton gmp will be installed together.
+
+$ brew install autoconf
+$ brew install mlton
+It takes some time for make.
+
+$ mkdir ~ / Programming / SMLtoJs; cd $ _
+$ git clone https://github.com/melsman/mlkit.git smltojs
+$ cd smltojs
+$ ./autobuild
+$ ./configure
+$ make smltojs
+$ make smltojs_basislibs
+$ ./bin/smltojs --help
+The readability of the generated JavaScript file is low feeling.
+JavaScript is only the target language, it seems that operation at JavaScript level is not supposed. (Unlike PureScript and BuckleScript)
+
+Compile SMLtoJs itself into JavaScript
+
+I want to run SMLtoJs in Node.js.
+
+https://github.com/melsman/mlkit/blob/master/README_SMLTOJS.md
+To build the browser-hosted compiler, proceed as follows:
+
+$ cd ../../src/Compiler
+$ SML_LIB = $ (HOME) / smltojs / js ../../bin/smltojs - aopt smltojs0.mlb
+The last command should generate a file run.html which links to all necessary JavaScript sources. Executing
+
+$ firefox run.html
+will start up a simple IDE for the compiler.
+$ cd ../../src/Compiler
+$ SML_LIB = .. / .. / js ../../bin/smltojs - aopt smltojs0.mlb
+An error occurs
+
+* Error: Failed to find info for file: ../../js/basis/basis.mlb
+Details: No such file or directory
+The error message seems to be output in src / Tools / MlbMake / MlbFileSys.sml.
+ST is defined in ./basis/POSIX_FILE_SYS.sml.
+
+If it changed to absolute path it was ok.
+
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build; cd $ _
+$ SML_LIB = $ {PWD} /../ js $ {PWD} /../ bin / smltojs - aopt $ {PWD} /../ src / Compiler / smltojs0.mlb
+However, another error occurred.
+
+... / Programming / SMLtoJs / smltojs / Build / .. / js / appfun / AppFun2.sml, line 884, column 6:
+    val () = attachToElement (getElem "body") everything
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Type clash,
+   type of left-hand side pattern: unit
+   type of right-hand side expression: (unit-> unit) -> unit
+[[ERR in sub process:
+  PARSE_ELAB_ERROR]]
+Stopping compilation of MLB-file due to error (code 1).
+Since AppFun 2 seems unnecessary, it seems no problem to delete it.
+
+Since attachToElement is a three-argument function, only two arguments are passed, so the partially applied function becomes an expression that returns.
+It seems better to add arguments.
+
+Fixed AppFun2.sml for the time being.
+
+- val () = attachToElement (getElem "body") everything
++ val () = attachToElement (getElem "body") everything (fn () => ())
+Once compiled successfully.
+
+It seems that adding a js_path_compress option will normalize the path.
+
+$ export JS_PATH_FLAGS = "- js_path_compress"
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build; cd $ _
+$ SML_LIB = $ {PWD} /../ js $ {PWD} /../ bin / smltojs - aopt $ {JS_PATH_FLAGS} $ {PWD} /../ src / Compiler / smltojs0.mlb
+List of generated JavaScript files:
+
+$ cat run.html | sed 's / <script type = \ "text \ / javascript \" src = \ "//' | sed 's / \"> <\ / script> //' | grep - v ' <! - '> files.txt
+Copy file
+
+$ cat files.txt | while read i; do cat $ {i} >> smltojs.js; done
+Because it contained DOM libraries, it was not possible to run in Node.js (maybe you should use jsdom).
+
+$ node smltojs.js
+Build smltojs.mlb.
+
+$ export JS_PATH_FLAGS = "- js_path_compress"
+$ cd $ {HOME} / Programming / SMLtoJs / smltojs
+$ mkdir Build 1; cd $ _
+$ SML_LIB = $ {PWD} /../ js $ {PWD} /../ bin / smltojs - aopt $ {JS_PATH_FLAGS} $ {PWD} /../ src / Compiler / smltojs.mlb
+This failed to build due to an error.

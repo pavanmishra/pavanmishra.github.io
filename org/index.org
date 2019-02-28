@@ -1,1 +1,6 @@
-hello
+* Pavan Mishra
+** About Me
+- Uses Emacs
+- Uses Dvorak keyboard layout
+- Uses recursion
+- Solves problem by modeling first
